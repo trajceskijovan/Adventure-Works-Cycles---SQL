@@ -1,0 +1,147 @@
+--Virtual Table for Offline Sale--Creating Temporary Table for Offline Sales
+WITH VirtualTableOffline AS
+
+(SELECT pc.name,SOD.SalesOrderID,
+
+--Adding a fiscal year of AW. FY of AW starts in July so we neeed to add 6 months to regukar year to get FY of AW--
+		DATEPART (YEAR, DATEADD (MONTH, 6, OrderDate)) AS FY,
+		DATEPART (QUARTER, DATEADD (MONTH, 6, OrderDate)) AS FQ
+--Joining Tables Together--
+		FROM [AdventureWorks2016].[Sales].[SalesOrderDetail] AS SOD
+		JOIN [AdventureWorks2016].[Sales].[SalesOrderHeader] AS SOH
+		ON SOH.SalesOrderID=SOD.SalesOrderID
+		JOIN [AdventureWorks2016].[Production].[Product] AS PRD
+		ON sod.ProductID=PRD.ProductID
+		join [AdventureWorks2016].[Production].[ProductSubcategory] AS PSC
+		ON PRD.ProductSubcategoryID=PSC.ProductSubcategoryID
+		join[AdventureWorks2016].[Production].[ProductCategory] AS PC
+		ON PC.ProductCategoryID=PSC.ProductCategoryID
+ ---------------------------
+ WHERE SOH.OnlineOrderFlag=0  --Choosing only Offline sales by filtering Online Order Flag to be '0'
+)
+--Offline Main Table--Creating Temporary Table for Offline Sales. It allows us to see sum of each product per FY and FQ
+SELECT SalesOrderID, FY, FQ, sum(Bikes) AS [Bikes],sum(Accessories) AS [Accessories],sum(Clothing) AS [Clothing],sum(Components) AS [Components]
+INTO #Tem_Offline
+
+--Secondary Table where we get the total number of orders for a product mix within a financial quarter.--
+FROM (
+		SELECT DISTINCT SalesOrderID,
+		Name
+--Turning rows into columns--
+		,CASE WHEN [Name]='Bikes' then 1 ELSE 0 end as [Bikes]
+		,CASE WHEN [Name]='Accessories' then  1 ELSE 0 end as [Accessories]
+		,CASE WHEN [Name]='Clothing' then 1 ELSE 0 end as [Clothing]
+		,CASE WHEN [Name]='Components' then 1 ELSE 0 end as [Components],
+
+--Attaching FY and FQ to the table--
+		[FY],
+		[FQ]
+
+FROM VirtualTableOffline
+WHERE  [FY] IN ('2012','2013','2014')  -----Use Data only for period of  '2012-07-01' and '2014-07-01'---------
+) as SecondaryTable --We use it get the total number of orders for a product mix within a financial quarter---
+group by  SalesOrderID, FY, FQ;
+
+
+--Virtual Table for Online Sale --
+WITH VirtualTableOnline AS (SELECT pc.name, SOD.SalesOrderID,
+--Adding a fiscal year of AW. FY of AW starts in July so we neeed to add 6 months to regukar year to get FY of AW--
+		DATEPART (YEAR, DATEADD (MONTH, 6, OrderDate)) AS FY,
+		DATEPART (QUARTER, DATEADD (MONTH, 6, OrderDate)) AS FQ
+
+--Joining Tables Together--
+		FROM [AdventureWorks2016].[Sales].[SalesOrderDetail] AS SOD
+		JOIN [AdventureWorks2016].[Sales].[SalesOrderHeader] AS SOH
+		ON SOH.SalesOrderID=SOD.SalesOrderID
+		JOIN [AdventureWorks2016].[Production].[Product] AS PRD
+		ON sod.ProductID=PRD.ProductID
+		join [AdventureWorks2016].[Production].[ProductSubcategory] AS PSC
+		ON PRD.ProductSubcategoryID=PSC.ProductSubcategoryID
+		join[AdventureWorks2016].[Production].[ProductCategory] AS PC
+		ON PC.ProductCategoryID=PSC.ProductCategoryID
+ ---------------------------
+ WHERE SOH.OnlineOrderFlag=1
+)
+--Online Main table--Creating Temporary Table for Online Sales. It allows us to see sum of each product per FY and FQ
+SELECT SalesOrderID, FY, FQ, sum(Bikes) AS [Bikes],sum(Accessories) AS [Accessories],sum(Clothing) AS [Clothing],sum(Components) AS [Components]
+INTO #Tem_Online
+
+--Secondary Table where we get the total number of orders for a product mix within a financial quarter.--
+FROM (
+		SELECT DISTINCT SalesOrderID,
+		Name
+--Turning rows into columns--
+		,CASE WHEN [Name]='Bikes' then 1 ELSE 0 end as [Bikes]
+		,CASE WHEN [Name]='Accessories' then  1 ELSE 0 end as [Accessories]
+		,CASE WHEN [Name]='Clothing' then 1 ELSE 0 end as [Clothing]
+		,CASE WHEN [Name]='Components' then 1 ELSE 0 end as [Components],
+
+--Attaching FY and FQ to the table--
+		[FY],
+		[FQ]
+
+FROM VirtualTableOnline
+
+WHERE  [FY] IN ('2012','2013','2014')  -----Use Data only for period of  '2012-07-01' and '2014-07-01'---------
+) as SecondaryTable --We use it get the total number of orders for a product mix within a fiscal quarter---
+
+group by  SalesOrderID, FY, FQ;
+
+--Creating a table to count Online Orders of each product mix--
+SELECT FY,FQ,Bikes,Accessories,Clothing,Components, COUNT(*) AS [Online Orders]
+into #OnlineSum
+from #Tem_Online
+GROUP BY FY,FQ,Bikes,Accessories,Clothing,Components
+
+--Creating a table to count Offline Orders of each product mix--
+SELECT FY,FQ,Bikes,Accessories,Clothing,Components, COUNT(*) AS [Offline Orders]
+into #OfflineSum
+from #Tem_Offline
+GROUP BY FY,FQ,Bikes,Accessories,Clothing,Components
+
+--drop table #new_table1
+--drop table #new_table2
+--drop table #new_table3
+
+select *
+INTO #new_table1
+FROM(
+		SELECT OfflineSum.FY, OfflineSum.FQ, OfflineSum.Bikes, OfflineSum.Accessories, OfflineSum.Clothing, OfflineSum.Components, OfflineSum.[Offline Orders],
+		CASE WHEN OnlineSum.[Online Orders] is null then 0 else OnlineSum.[Online Orders] end as [Online Orders]
+
+--Full Outer Join of Online Order Table and Offline Order Table on each product category--
+FROM #OfflineSum as OfflineSum
+full outer join #OnlineSum as OnlineSum on
+		OfflineSum.FY=OnlineSum.FY
+		AND OfflineSum.FQ=OnlineSum.FQ
+		AND OfflineSum.Accessories=OnlineSum.Accessories
+		AND OfflineSum.Bikes=OnlineSum.Bikes
+		AND OfflineSum.Clothing=OnlineSum.Clothing
+		AND OfflineSum.Components=OnlineSum.Components
+WHERE [Offline Orders] IS NOT NULL
+) AS group_all
+
+--Grouping a combined table (Offline orders and Online Orders) by FQ and FY
+SELECT *
+INTO #new_table2
+FROM(
+	SELECT *,
+	sum([Offline Orders]) over (Partition by FQ,fy ) as [Total],
+	sum([Online Orders]) over (Partition by FQ,fy) as [Total2]
+from #new_table1
+) AS group_all2
+
+--Additing Percentage_Of_Offline_Orders and Percentage_Of_Online_Orders to the table--
+SELECT FY,FQ,Bikes,Accessories,Clothing,Components,[Offline Orders],
+       [Online Orders], Percentage_Of_Offline_Orders, Percentage_Of_Online_Orders
+INTO #new_table3
+FROM(
+SELECT FY,FQ,Bikes,Accessories,Clothing,Components,[Offline Orders],[Online Orders],
+	   ROUND(CAST([Offline Orders] as FLOAT) / Total * 100,2) AS Percentage_Of_Offline_Orders,
+       ROUND(CAST([Online Orders] as FLOAT) / Total2 * 100,2) AS Percentage_Of_Online_Orders
+FROM #new_table2
+) AS group_all3
+
+SELECT *
+FROM #new_table3
+ 
