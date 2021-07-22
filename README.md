@@ -13,15 +13,15 @@ https://github.com/trajceskijovan/Adventure-Works-Cycles---SQL/blob/main/SQL%20q
 https://github.com/trajceskijovan/Adventure-Works-Cycles---SQL/blob/main/Presentation.pdf
 
 # SQL output:
-![](SQL1.png)
-![](SQL2.png)
-![](SQL3.png)
-![](SQL4.png)
+![](samples/SQL1.png)
+![](samples/SQL2.png)
+![](samples/SQL3.png)
+![](samples/SQL4.png)
 
 # Insights:
-![](Insights1.PNG)
-![](Insights2.PNG)
-![](Insights3.PNG)
-![](Insights4.PNG)
-![](Insights5.PNG)
+![](samples/Insights1.PNG)
+![](samples/Insights2.PNG)
+![](samples/Insights3.PNG)
+![](samples/Insights4.PNG)
+![](samples/Insights5.PNG)
 
