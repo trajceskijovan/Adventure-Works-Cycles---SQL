@@ -13,9 +13,9 @@ Exploratory Data Analysis (EDA) Using SQL
 ![](SQL4.png)
 
 # Insights:
-![](Insights1.png)
-![](Insights2.png)
-![](Insights3.png)
-![](Insights4.png)
-![](Insights5.png)
+![](Insights1.PNG)
+![](Insights2.PNG)
+![](Insights3.PNG)
+![](Insights4.PNG)
+![](Insights5.PNG)
 
