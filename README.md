@@ -10,6 +10,7 @@ Market Basket Analysis & Exploratory Data Analysis (EDA) Using SQL
 https://github.com/trajceskijovan/Adventure-Works-Cycles---SQL/blob/main/SQL%20query
 
 # Presentation (deck):
+https://github.com/trajceskijovan/Adventure-Works-Cycles---SQL/blob/main/Presentation.pdf
 
 # SQL output:
 ![](SQL1.png)
