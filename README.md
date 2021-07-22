@@ -1,6 +1,6 @@
 # Adventure Works Cycles-SQL
--Market Basket Analysis & Exploratory Data Analysis (EDA) Using SQL
--SQL code availabe in the "SQL query" file
+- Market Basket Analysis & Exploratory Data Analysis (EDA) Using SQL
+- SQL code availabe in the "SQL query" file
 
 # Task:
 1. Conduct a Market Basket Analysis
