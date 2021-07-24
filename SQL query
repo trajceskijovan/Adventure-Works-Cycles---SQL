@@ -3,7 +3,7 @@ WITH VirtualTableOffline AS
 
 (SELECT pc.name,SOD.SalesOrderID,
 
---Adding a fiscal year of AW. FY of AW starts in July so we neeed to add 6 months to regukar year to get FY of AW--
+--Adding a fiscal year of AW. FY of AW starts in July so we neeed to add 6 months to calendar year to get FY of AW--
 		DATEPART (YEAR, DATEADD (MONTH, 6, OrderDate)) AS FY,
 		DATEPART (QUARTER, DATEADD (MONTH, 6, OrderDate)) AS FQ
 --Joining Tables Together--
@@ -39,13 +39,13 @@ FROM (
 
 FROM VirtualTableOffline
 WHERE  [FY] IN ('2012','2013','2014')  -----Use Data only for period of  '2012-07-01' and '2014-07-01'---------
-) as SecondaryTable --We use it get the total number of orders for a product mix within a financial quarter---
+) as SecondaryTable --I use it get the total number of orders for a product mix within a financial quarter---
 group by  SalesOrderID, FY, FQ;
 
 
 --Virtual Table for Online Sale --
 WITH VirtualTableOnline AS (SELECT pc.name, SOD.SalesOrderID,
---Adding a fiscal year of AW. FY of AW starts in July so we neeed to add 6 months to regukar year to get FY of AW--
+--Adding a fiscal year of AW. FY of AW starts in July so we neeed to add 6 months to calendar year to get FY of AW--
 		DATEPART (YEAR, DATEADD (MONTH, 6, OrderDate)) AS FY,
 		DATEPART (QUARTER, DATEADD (MONTH, 6, OrderDate)) AS FQ
 
@@ -131,7 +131,7 @@ FROM(
 from #new_table1
 ) AS group_all2
 
---Additing Percentage_Of_Offline_Orders and Percentage_Of_Online_Orders to the table--
+--Add Percentage_Of_Offline_Orders and Percentage_Of_Online_Orders to the table--
 SELECT FY,FQ,Bikes,Accessories,Clothing,Components,[Offline Orders],
        [Online Orders], Percentage_Of_Offline_Orders, Percentage_Of_Online_Orders
 INTO #new_table3
